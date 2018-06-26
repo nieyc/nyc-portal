@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"     
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:aop="http://www.springframework.org/schema/aop"
+		xmlns:task="http://www.springframework.org/schema/task"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd 
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+
+	<context:property-placeholder location="classpath:property.properties" />  
+	
+	
+	 <!-- 配置项都是默认值 -->
+	 <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <!-- 最大连接数 -->
+        <property name="maxTotal" value="8"/>
+        <!-- 最大空闲连接数 -->
+        <property name="maxIdle" value="8"/>
+        <!-- 每次最大连接数 -->
+        <property name="numTestsPerEvictionRun" value="3"/>
+        <!-- 释放扫描的扫描间隔 -->
+        <property name="timeBetweenEvictionRunsMillis" value="-1"/>
+        <!-- 连接的最小空闲时间 -->
+        <property name="minEvictableIdleTimeMillis" value="1800000"/>
+        <!-- 连接控歘按时间多久后释放，当空闲时间>该值且空闲连接>最大空闲连接数时直接释放 -->
+        <property name="softMinEvictableIdleTimeMillis" value="1800000"/>
+        <!-- 获得链接时的最大等待毫秒数，小于0：阻塞不确定时间，默认-1 -->
+        <property name="maxWaitMillis" value="-1"/>
+        <!-- 在获得链接的时候检查有效性，默认false -->
+        <property name="testOnBorrow" value="false"/>
+        <!-- 在空闲时检查有效性，默认false -->
+        <property name="testWhileIdle" value="false"/>
+        <!-- 连接耗尽时是否阻塞，false报异常，true阻塞超时 默认：true-->
+        <property name="blockWhenExhausted" value="true"/>
+    </bean>
+	
+    <!--配置RedisClusterConfiguration-->
+    <bean id="redisClusterConfiguration" class="org.springframework.data.redis.connection.RedisClusterConfiguration">
+        <property name="maxRedirects" value="5"></property>
+        <property name="clusterNodes">
+            <set>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg name="host" value="${jedisClusterHost1}"/>
+                    <constructor-arg name="port" value="${jedisClusterPort1}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg name="host" value="${jedisClusterHost2}"/>
+                    <constructor-arg name="port" value="${jedisClusterPort2}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg name="host" value="${jedisClusterHost3}"/>
+                    <constructor-arg name="port" value="${jedisClusterPort3}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg name="host" value="${jedisClusterHost4}"/>
+                    <constructor-arg name="port" value="${jedisClusterPort4}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg name="host" value="${jedisClusterHost5}"/>
+                    <constructor-arg name="port" value="${jedisClusterPort5}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg name="host" value="${jedisClusterHost6}"/>
+                    <constructor-arg name="port" value="${jedisClusterPort6}"/>
+                </bean>
+            </set>
+        </property>
+    </bean>
+    
+    
+     <!--配置JedisConnectionFactory-->
+    <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <constructor-arg name="poolConfig" ref="jedisPoolConfig"/>
+        <constructor-arg name="clusterConfig" ref="redisClusterConfiguration"/>
+    </bean>
+
+    <!--redisTemplate-->
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+        <property name="connectionFactory" ref="jedisConnectionFactory"/>
+    </bean>
+    
+    <!--订阅，发布机制-闸机通知 -->
+   <!--  <bean id="topicContainer" class="org.springframework.data.redis.listener.RedisMessageListenerContainer" destroy-method="destroy">  
+        <property name="connectionFactory" ref="jedisConnectionFactory"/>  
+        <property name="taskExecutor">此处有个奇怪的问题，无法正确使用其他类型的Executor  
+            <bean class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">  
+                <property name="poolSize" value="3"></property>  
+            </bean>  
+        </property>  
+        <property name="messageListeners">  
+            <map>  
+                <entry key-ref="topicMessageListener">  
+                    <bean class="org.springframework.data.redis.listener.ChannelTopic">  
+                        <constructor-arg value="ex:notice"/>  
+                    </bean>  
+                </entry>  
+            </map>  
+        </property>  
+    </bean>   -->
+	
+</beans>

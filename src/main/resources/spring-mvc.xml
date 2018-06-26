@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"     
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:p="http://www.springframework.org/schema/p"    
+		xmlns:mvc="http://www.springframework.org/schema/mvc"
+		xmlns:aop="http://www.springframework.org/schema/aop"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd   
+       	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+  	<context:property-placeholder location="classpath:property.properties" /> 
+
+	<!-- 启用spring注解 -->
+	<mvc:annotation-driven content-negotiation-manager="contentNegotiationManager" />
+
+	<!-- 开启aop注入 -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<!-- 设置使用注解的类所在的jar包 -->
+	<context:component-scan base-package="com.github.nyc.portal" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+	
+ 	<bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+		<property name="mediaTypes">
+			<map> 
+                <entry key="json" value="application/json" />
+            </map>
+		</property>
+		<property name="ignoreAcceptHeader" value="true" />
+        <property name="favorParameter" value="true" />
+	</bean>
+	
+
+	
+	
+	
+
+	
+	<!-- 完成请求和注解POJO的映射 -->
+	<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter" />
+	
+	<!-- 支持上传文件 -->  
+     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="20971520" />  
+    </bean>
+
+	<!-- 对转向页面的路径解析。prefix：前缀， suffix：后缀 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/" p:suffix=".jsp" />
+	
+	<!-- 拦截器 -->  
+      <mvc:interceptors>  
+		 <!--<mvc:interceptor>
+      		<mvc:mapping path="/store/*" />
+      		<mvc:mapping path="/good/*" />
+      		<mvc:mapping path="/order/*" />
+      		<bean class="com.github.nyc.interceptor.CommonInterceptor">
+      			<property name="key" value="${signature.request.key}"/>
+      			<property name="skfKey" value="${signature.request.skf.key}" />
+      			<property name="tokenKey" value="${signature.request.mall.tokenKey}"/>
+      		</bean>
+        </mvc:interceptor> -->
+        <!-- 小程序逻辑 -->
+        <mvc:interceptor>
+      		<mvc:mapping path="/account/*" />
+      		<bean class="com.github.nyc.interceptor.WxInterceptor">
+      		</bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+</beans>
